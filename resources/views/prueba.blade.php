@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{asset('css/style.css')}}">
+    {{-- <link rel="stylesheet" href="{{asset('css/style.css')}}"> --}}
     <title>Calendario de prueba</title>
 </head>
 <style>
@@ -55,10 +55,10 @@
         border-right: solid #9c9c9c 2px;
         border-bottom: solid #9c9c9c 2px;
         border-top: solid #3F688C 8px;
-        transform: translateY(-140%);
+        /* transform: translateY(-140%); */
         transition: .7s .1s ease-in-out;
         font-weight: bold;
-        font-size: 1.1rem;
+        font-size: 0.9rem;
     }
 
     .modal-header{
@@ -110,6 +110,7 @@
 
     .modal-footer{
         text-align: end;
+        margin-top: 1rem;
     }
 
     .btn-fill{
@@ -194,20 +195,23 @@
                             </div>
                             <input type="text" id="prioridad" placeholder="Este mes">
                         </div>
-
-                        {{-- Rango de fechas --}}
-                        <div class="fechas" style="display: flex; margin-bottom:10px;">
-                            {{-- fila 6 --}}
-                            <div class="fila6">
-                                <p>Fecha Inicio</p>
-                                <input type="date" id="fechaInicioEvento" placeholder="dd/mm/yyyy">
+                        
+                        {{-- fila 6 --}}
+                        <div class="fila6 filaModal">
+                            <div class="">
+                                <i class="fa-solid fa-calendar-days margin-right"></i>
+                                <label>Fecha Inicio</label>
                             </div>
-    
-                            {{-- fila 7 --}}
-                            <div class="fila7">
-                                <p>Fecha Fin</p>
-                                <input type="date" id="fechaFinEvento" placeholder="dd/mm/yyyy">
+                            <input type="date" id="fechaInicioEvento" placeholder="dd/mm/yyyy">
+                        </div>
+                        
+                        {{-- fila 7 --}}
+                        <div class="fila7 filaModal">
+                            <div class="">
+                                <i class="fa-solid fa-calendar-days margin-right"></i>
+                                <label>Fecha Fin</label>
                             </div>
+                            <input type="date" id="fechaFinEvento" placeholder="dd/mm/yyyy">
                         </div>
                     </form>
                 </div>
@@ -239,14 +243,79 @@
                 modalCreateCalendarEvent.style.display = 'none';
             });
 
-            let agregarTarea = (event) => {
+            let limpiarCampos = () => {
+                document.getElementById('nombreActividad').value = '';
+                document.getElementById('grupo').value = '';
+                document.getElementById('responsable').value = '';
+                document.getElementById('estado').value = '';
+                document.getElementById('prioridad').value = '';
+                document.getElementById('fechaInicioEvento').value = '';
+                document.getElementById('fechaFinEvento').value = '';
+            };
 
+            let agregarTarea = ( event, option ) => {
+
+                let nombreActividad = document.getElementById('nombreActividad').value;
+                let grupo = document.getElementById('grupo').value;
+                let responsable = document.getElementById('responsable').value;
+                let estado = document.getElementById('estado').value;
+                let prioridad = document.getElementById('prioridad').value;
+                let fechaCreacion = document.getElementById('fechaCreacion').value;
+                let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                const fecha = new Date();
+                let fechaC = fecha.getFullYear() + '-' + (fecha.getMonth() + 1) + '-' + fecha.getDate();
+
+                if ( option === 1 ) {
+                    
+                    let eventData = {
+                        nombre: nombreActividad,
+                        grupo: grupo,
+                        responsable: responsable,
+                        estado: estado,
+                        prioridad: prioridad,
+                        fecha_creacion: fechaC,
+                        fecha_inicio: event.startStr,
+                        fecha_fin: event.endStr,
+                    }
+                    
+                    fetch('/registrar-evento', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify(eventData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('El evento se registro con exito')
+                            calendar.addEvent({
+                                title: nombreActividad,
+                                start: event.startStr,
+                                end: event.endStr
+                            });
+                            limpiarCampos();
+                            event.startStr = '';
+                            event.endtStr = '';
+                        } else {
+                            limpiarCampos();
+                            event.startStr = '';
+                            event.endtStr = '';
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+
+                } else if ( option === 2 ){
+                    alert('nfghnfghfghf');
+                }
             };
             
             // Calendario
             let calendarEl = document.getElementById('calendar');
             let calendar = new FullCalendar.Calendar(calendarEl, {
-                // plugins: [dayGridPlugin],
                 locale: 'es',
                 events: '/mostrar-eventos',
                 initialView: 'dayGridMonth',
@@ -261,76 +330,16 @@
                 select: function(event){
                     
                     modalCreateCalendarEvent.style.display = 'flex';
-                    modalContainer.classList.add('center-modal');
                     fechaInicioEvento.value = event.startStr;
                     fechaFinEvento.value = event.endStr;
 
                     btnCreateEvent.addEventListener('click', () =>{
-                        let nombreActividad = document.getElementById('nombreActividad').value;
-                        let grupo = document.getElementById('grupo').value;
-                        let responsable = document.getElementById('responsable').value;
-                        let estado = document.getElementById('estado').value;
-                        let prioridad = document.getElementById('prioridad').value;
-                        let fechaCreacion = document.getElementById('fechaCreacion').value;
-                        let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-                        
-                        const fecha = new Date();
-                        let fechaC = fecha.getFullYear() + '-' + (fecha.getMonth() + 1) + '-' + fecha.getDate();
-
-                        let eventData = {
-                            nombre: nombreActividad,
-                            grupo: grupo,
-                            responsable: responsable,
-                            estado: estado,
-                            prioridad: prioridad,
-                            fecha_creacion: fechaC,
-                            fecha_inicio: event.startStr,
-                            fecha_fin: event.endStr,
-                        }
-                        console.log('La fecha inicial del evento a registrar es: ' + event.startStr)
-                        console.log('La fecha final del evento a registrar es: ' + event.endStr)
-
-                        fetch('/registrar-evento', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                                'X-CSRF-TOKEN': csrfToken
-                            },
-                            body: JSON.stringify(eventData)
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                console.log('El evento se registro con exito')
-                                calendar.addEvent({
-                                    title: nombreActividad,
-                                    start: event.startStr,
-                                    end: event.endStr
-                                });
-                            } else {
-                                // console.log(data);
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-
-                        modalCreateCalendarEvent.style.display = 'none';
-                        modalContainer.classList.remove('center-modal');
-                        
-                        // Limpiar campos
-                        document.getElementById('nombreActividad').value = '';
-                        document.getElementById('grupo').value = '';
-                        document.getElementById('responsable').value = '';
-                        document.getElementById('estado').value = '';
-                        document.getElementById('prioridad').value = '';
-                        document.getElementById('fechaInicioEvento').value = '';
-                        document.getElementById('fechaFinEvento').value = '';
-                        // event.startStr = '';
-                        // event.endStr = '';
+                        agregarTarea(event, 1);                        
+                        modalCreateCalendarEvent.style.display = 'none';                        
                     });
                 },
                 eventClick: function(event){
-                    alert('nfghnfghfghf');
+                    agregarTarea(event, 2);
                 }
             });
 
