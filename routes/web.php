@@ -13,4 +13,5 @@ Route::controller(EventController::class)->group(function(){
 });
 
 Route::get('/prueba', [EventController::class, 'prueba']);
+Route::get('/mostrar-eventos', [EventController::class, 'mostrarEventos']);
 Route::post('/registrar-evento', [EventController::class, 'registrarEvento']);

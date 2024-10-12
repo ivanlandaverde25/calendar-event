@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('responsable');
             $table->string('estado');
             $table->string('prioridad');
-            $table->dateTime('fecha_creacion');
-            $table->dateTime('fecha_inicio');
-            $table->dateTime('fecha_fin')->nullable();
+            $table->date('fecha_creacion');
+            $table->date('fecha_inicio');
+            $table->date('fecha_fin')->nullable();
             $table->timestamps();
         });
     }

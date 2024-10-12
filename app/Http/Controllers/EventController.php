@@ -66,6 +66,19 @@ class EventController extends Controller
         return view('prueba', compact('fechaCreacion'));
     }
 
+    public function mostrarEventos(){
+        
+        $eventos = EventoNuevo::all()->map(function($evento){
+            return [
+                'title' => $evento->nombre,
+                'start' => $evento->fecha_inicio,
+                'end' => $evento->fecha_fin
+            ];
+        });
+
+        return response()->json($eventos);
+    }
+
     public function registrarEvento(Request $request){
         $request->validate([
             'nombre' => 'required|string|min:3|max:255',
@@ -73,9 +86,9 @@ class EventController extends Controller
             'responsable' => 'required|string|min:3|max:255',
             'estado' => 'required|string|min:3|max:255',
             'prioridad' => 'required|string|min:3|max:255',
-            'Fecha_creacion' => 'required|date',
-            'Fecha_inicio' => 'required|date',
-            'Fecha_fin' => 'required|date',
+            // 'Fecha_creacion' => 'required|date',
+            // 'Fecha_inicio' => 'required|date',
+            // 'Fecha_fin' => 'required|date',
         ]);
 
         EventoNuevo::create($request->all());
