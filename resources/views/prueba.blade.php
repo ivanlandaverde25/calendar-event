@@ -11,8 +11,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-    {{-- <link rel="stylesheet" href="{{asset('css/style.css')}}"> --}}
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">{{-- <link rel="stylesheet" href="{{asset('css/style.css')}}"> --}}
     <title>Calendario de prueba</title>
 </head>
 <style>
@@ -24,7 +23,7 @@
         position: relative;
         overflow: hidden;
         background-color: #FAFAFA;
-        font-family: "Roboto", sans-serif;
+        font-family: "Montserrat", sans-serif;
     }
 
     .calendar{
@@ -218,7 +217,7 @@
 
                 {{-- Footer modal --}}
                 <div class="modal-footer">
-                    {{-- <button type="button" id="btnCloseModal">Cerrar</button> --}}
+                    <button type="button" class="btn-fill"  id="btnUpdateModal">Actualizar</button>
                     <button type="button" class="btn-fill" id="btnCreateEvent">
                         <i class="fa-solid fa-floppy-disk"></i>
                         Guardar
@@ -241,6 +240,7 @@
             let btnCloseModal = document.querySelector('#btnCloseModal');
             btnCloseModal.addEventListener('click', () => {
                 modalCreateCalendarEvent.style.display = 'none';
+                limpiarCampos();
             });
 
             let limpiarCampos = () => {
@@ -253,7 +253,7 @@
                 document.getElementById('fechaFinEvento').value = '';
             };
 
-            let agregarTarea = ( event, option ) => {
+            let agregarTarea = ( eventInfo, option ) => {
 
                 let nombreActividad = document.getElementById('nombreActividad').value;
                 let grupo = document.getElementById('grupo').value;
@@ -266,8 +266,8 @@
                 const fecha = new Date();
                 let fechaC = fecha.getFullYear() + '-' + (fecha.getMonth() + 1) + '-' + fecha.getDate();
 
-                if ( option === 1 ) {
-                    
+                // La opcion 1 indica que se va a registrar un nuevo evento
+                if ( option === 1 ) {                    
                     let eventData = {
                         nombre: nombreActividad,
                         grupo: grupo,
@@ -275,8 +275,8 @@
                         estado: estado,
                         prioridad: prioridad,
                         fecha_creacion: fechaC,
-                        fecha_inicio: event.startStr,
-                        fecha_fin: event.endStr,
+                        fecha_inicio: eventInfo.startStr,
+                        fecha_fin: eventInfo.endStr,
                     }
                     
                     fetch('/registrar-evento', {
@@ -294,22 +294,42 @@
                             console.log('El evento se registro con exito')
                             calendar.addEvent({
                                 title: nombreActividad,
-                                start: event.startStr,
-                                end: event.endStr
+                                start: eventInfo.startStr,
+                                end: eventInfo.endStr
                             });
                             limpiarCampos();
-                            event.startStr = '';
-                            event.endtStr = '';
+                            eventInfo.startStr = '';
+                            eventInfo.endtStr = '';
                         } else {
                             limpiarCampos();
-                            event.startStr = '';
-                            event.endtStr = '';
+                            eventInfo.startStr = '';
+                            eventInfo.endtStr = '';
                         }
                     })
                     .catch(error => console.error('Error:', error));
 
+                
+                    // La opcion 2 indica que se va mostrar un registro ya creado dentro del modal
                 } else if ( option === 2 ){
-                    alert('nfghnfghfghf');
+                    limpiarCampos();
+                    modalCreateCalendarEvent.style.display = 'flex';
+                    let nombreActividad = eventInfo.event.title;
+                    let grupo = eventInfo.event.extendedProps.grupo;
+                    let responsable = eventInfo.event.extendedProps.responsable;
+                    let estado = eventInfo.event.extendedProps.estado;
+                    let fecha_creacion = eventInfo.event.extendedProps.fecha_creacion;
+                    let prioridad = eventInfo.event.extendedProps.prioridad;
+
+                    console.log(grupo)
+
+                    document.getElementById('nombreActividad').value = nombreActividad;
+                    document.getElementById('grupo').value = grupo;
+                    document.getElementById('responsable').value = responsable;
+                    document.getElementById('estado').value = estado;
+                    document.getElementById('fechaCreacion').value = fecha_creacion;
+                    document.getElementById('prioridad').value = prioridad;
+                    fechaInicioEvento.value = eventInfo.event.start.toISOString().slice(0, 10);
+                    fechaFinEvento.value = eventInfo.event.end ? eventInfo.event.end.toISOString().slice(0, 10) : 'No definida';
                 }
             };
             
@@ -328,10 +348,11 @@
                 selectHelper: true,
                 editable: true,
                 select: function(event){
-                    
+                    btnCreateEvent.style.display = 'visible';
                     modalCreateCalendarEvent.style.display = 'flex';
                     fechaInicioEvento.value = event.startStr;
                     fechaFinEvento.value = event.endStr;
+                    console.log('seleccion')
 
                     btnCreateEvent.addEventListener('click', () =>{
                         agregarTarea(event, 1);                        
@@ -339,6 +360,8 @@
                     });
                 },
                 eventClick: function(event){
+                    btnCreateEvent.style.display = 'none';
+                    event.jsEvent.preventDefault();
                     agregarTarea(event, 2);
                 }
             });

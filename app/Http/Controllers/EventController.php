@@ -72,7 +72,12 @@ class EventController extends Controller
             return [
                 'title' => $evento->nombre,
                 'start' => $evento->fecha_inicio,
-                'end' => $evento->fecha_fin
+                'end' => $evento->fecha_fin,
+                'grupo' => $evento->grupo,
+                'responsable' => $evento->responsable,
+                'estado' => $evento->estado,
+                'fecha_creacion' => $evento->fecha_creacion,
+                'prioridad' => $evento->prioridad,
             ];
         });
 
