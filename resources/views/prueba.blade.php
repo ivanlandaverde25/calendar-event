@@ -238,6 +238,7 @@
             
             let btnCreateEvent = document.getElementById('btnCreateEvent'); 
             let btnCloseModal = document.querySelector('#btnCloseModal');
+            
             btnCloseModal.addEventListener('click', () => {
                 modalCreateCalendarEvent.style.display = 'none';
                 limpiarCampos();
@@ -267,7 +268,8 @@
                 let fechaC = fecha.getFullYear() + '-' + (fecha.getMonth() + 1) + '-' + fecha.getDate();
 
                 // La opcion 1 indica que se va a registrar un nuevo evento
-                if ( option === 1 ) {                    
+                if ( option === 1 ) { 
+                    
                     let eventData = {
                         nombre: nombreActividad,
                         grupo: grupo,
@@ -294,6 +296,11 @@
                             console.log('El evento se registro con exito')
                             calendar.addEvent({
                                 title: nombreActividad,
+                                grupo: grupo,
+                                responsable: responsable,
+                                estado: estado,
+                                prioridad: prioridad,
+                                fecha_creacion: fechaC,
                                 start: eventInfo.startStr,
                                 end: eventInfo.endStr
                             });
@@ -309,7 +316,7 @@
                     .catch(error => console.error('Error:', error));
 
                 
-                    // La opcion 2 indica que se va mostrar un registro ya creado dentro del modal
+                // La opcion 2 indica que se va mostrar un registro ya creado dentro del modal
                 } else if ( option === 2 ){
                     limpiarCampos();
                     modalCreateCalendarEvent.style.display = 'flex';
@@ -319,8 +326,6 @@
                     let estado = eventInfo.event.extendedProps.estado;
                     let fecha_creacion = eventInfo.event.extendedProps.fecha_creacion;
                     let prioridad = eventInfo.event.extendedProps.prioridad;
-
-                    console.log(grupo)
 
                     document.getElementById('nombreActividad').value = nombreActividad;
                     document.getElementById('grupo').value = grupo;
@@ -345,21 +350,21 @@
                     right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
                 },
                 selectable: true,
-                selectHelper: true,
+                // selectHelper: true,
                 editable: true,
                 select: function(event){
-                    btnCreateEvent.style.display = 'visible';
+                    btnCreateEvent.style.display = 'inline-block';
                     modalCreateCalendarEvent.style.display = 'flex';
                     fechaInicioEvento.value = event.startStr;
                     fechaFinEvento.value = event.endStr;
-                    console.log('seleccion')
-
+                    
                     btnCreateEvent.addEventListener('click', () =>{
                         agregarTarea(event, 1);                        
                         modalCreateCalendarEvent.style.display = 'none';                        
                     });
                 },
                 eventClick: function(event){
+                    console.log('El boton ya no se ve :)')
                     btnCreateEvent.style.display = 'none';
                     event.jsEvent.preventDefault();
                     agregarTarea(event, 2);
