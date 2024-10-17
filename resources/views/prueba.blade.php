@@ -4,14 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    {{-- Token para envios AJAX --}}
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Calendario --}}
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar-scheduler@6.1.15/index.global.min.js"></script>
     <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.css' rel='stylesheet' />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/locales/es.js"></script>
+    {{-- Iconos --}}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {{-- Fuente --}}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">{{-- <link rel="stylesheet" href="{{asset('css/style.css')}}"> --}}
+    {{-- sweet alert 2 --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Calendario de prueba</title>
 </head>
 <style>
@@ -126,6 +132,11 @@
     {{-- Contenedor general --}}
     <div class="container">
 
+        {{-- colores representativos de actividades --}}
+        <div class="colores">
+            
+        </div>
+
         {{-- Calendario --}}
         <div id="calendar" class="calendar">
         </div>
@@ -174,7 +185,20 @@
                                 <i class="fa-solid fa-server margin-right"></i>
                                 <label>Estado</label>
                             </div>
-                            <input type="text" id="estado" placeholder="Este mes">
+                            {{-- Datalist --}}
+                            {{-- <input type="text" id="estado" placeholder="Seleccione" list="listaEstados" autocomplete="off" required>
+                            <datalist id="listaEstados">
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En progreso">En progreso</option>
+                                <option value="Finalizado">Finalizado</option>
+                            </datalist> --}}
+                            
+                            {{-- Select --}}
+                            <select name="" id="estado" aria-placeholder="seleccione" autocomplete="off" required>
+                                <option value="Pendiente" style="">Pendiente</option>
+                                <option value="En progreso" style="">En progreso</option>
+                                <option value="Finalizado">Finalizado</option>
+                            </select>
                         </div>
 
                         {{-- fila 4 --}}
@@ -236,7 +260,8 @@
             let modalCreateCalendarEvent = document.getElementById('modalCreateCalendarEvent');
             let modalContainer = document.getElementById('modalContainer');
             
-            let btnCreateEvent = document.getElementById('btnCreateEvent'); 
+            let btnCreateEvent = document.getElementById('btnCreateEvent');
+            let btnUpdateModal = document.getElementById('btnUpdateModal');
             let btnCloseModal = document.querySelector('#btnCloseModal');
             
             btnCloseModal.addEventListener('click', () => {
@@ -293,7 +318,7 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            console.log('El evento se registro con exito')
+                            // Mostrar el evento en el calendario
                             calendar.addEvent({
                                 title: nombreActividad,
                                 grupo: grupo,
@@ -303,6 +328,23 @@
                                 fecha_creacion: fechaC,
                                 start: eventInfo.startStr,
                                 end: eventInfo.endStr
+                            });
+
+                            // Alerta de confirmacion
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 3000,
+                                timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.onmouseenter = Swal.stopTimer;
+                                    toast.onmouseleave = Swal.resumeTimer;
+                                }
+                            });
+                            Toast.fire({
+                            icon: "success",
+                            title: "La tarea ha sido agregada con exito"
                             });
                             limpiarCampos();
                             eventInfo.startStr = '';
@@ -350,11 +392,12 @@
                     right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
                 },
                 selectable: true,
-                // selectHelper: true,
                 editable: true,
                 select: function(event){
                     btnCreateEvent.style.display = 'inline-block';
                     modalCreateCalendarEvent.style.display = 'flex';
+                    btnUpdateModal.style.display = 'none';
+                    
                     fechaInicioEvento.value = event.startStr;
                     fechaFinEvento.value = event.endStr;
                     
@@ -364,10 +407,26 @@
                     });
                 },
                 eventClick: function(event){
-                    console.log('El boton ya no se ve :)')
                     btnCreateEvent.style.display = 'none';
+                    btnUpdateModal.style.display = 'inline-block';
                     event.jsEvent.preventDefault();
                     agregarTarea(event, 2);
+                },
+                // eventColor: "#333333",  Este para asignar un color a todos los elementos por defecto
+                eventDidMount: function(info){
+                    if(info.event.extendedProps.estado === 'Pendiente'){
+                        info.el.style.backgroundColor = '#AABAC5';
+                    }else if(info.event.extendedProps.estado === 'En progreso'){
+                        info.el.style.backgroundColor = '#E87D2E'; 
+                    } else if(info.event.extendedProps.estado === 'Finalizado'){
+                        info.el.style.backgroundColor = '#37A53B'; 
+                    } else {
+                        info.el.style.backgroundColor = '#333333'; // Color por defecto
+                    }
+                },
+                eventDrop: function(info){
+                    alert('Está acción no se tiene activa');
+
                 }
             });
 

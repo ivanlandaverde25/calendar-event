@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('fecha_creacion');
             $table->date('fecha_inicio');
             $table->date('fecha_fin')->nullable();
+            $table->string('color')->nullable();
             $table->timestamps();
         });
     }
