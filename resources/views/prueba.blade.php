@@ -377,6 +377,10 @@
                     document.getElementById('prioridad').value = prioridad;
                     fechaInicioEvento.value = eventInfo.event.start.toISOString().slice(0, 10);
                     fechaFinEvento.value = eventInfo.event.end ? eventInfo.event.end.toISOString().slice(0, 10) : 'No definida';
+                
+                    // La opcion 3 es para actualizar la fecha de un evento
+                } else if ( option === 3 ){
+                    
                 }
             };
             
@@ -425,8 +429,7 @@
                     }
                 },
                 eventDrop: function(info){
-                    alert('Está acción no se tiene activa');
-
+                    alert(info.event.startStr);
                 }
             });
 
