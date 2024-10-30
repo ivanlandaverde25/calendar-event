@@ -127,6 +127,14 @@
         font-size: 1rem;
         padding: 5px 10px;
     }
+
+    /* Estilo personalizado para simular un Toast */
+    .swal-toast-style {
+        width: 400px !important;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
 </style>
 <body>
     {{-- Contenedor general --}}
@@ -336,15 +344,15 @@
                                 position: "top-end",
                                 showConfirmButton: false,
                                 timer: 3000,
-                                timerProgressBar: true,
+                                // timerProgressBar: true,
                                 didOpen: (toast) => {
                                     toast.onmouseenter = Swal.stopTimer;
                                     toast.onmouseleave = Swal.resumeTimer;
                                 }
                             });
                             Toast.fire({
-                            icon: "success",
-                            title: "La tarea ha sido agregada con exito"
+                                icon: "success",
+                                title: "La tarea ha sido agregada con exito"
                             });
                             limpiarCampos();
                             eventInfo.startStr = '';
@@ -429,7 +437,53 @@
                     }
                 },
                 eventDrop: function(info){
-                    alert(info.event.startStr);
+
+                    const Toast = Swal.mixin({
+                        position: 'bottom',
+                        showConfirmButton: false,
+                        timerProgressBar: true,
+                        allowOutsideClick: false,
+                        backdrop: true,   
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonColor: "#3085d6",
+                        cancelButtonColor: "#d33",
+                        confirmButtonText: "Actualizar evento",
+                        customClass: {
+                            popup: 'swal-toast-style'
+                        },
+                        didOpen: (toast) => {
+                            toast.onmouseenter = Swal.stopTimer;
+                            toast.onmouseleave = Swal.resumeTimer;
+                        }
+                    });
+
+                    // Usar el mixin para mostrar el Toast con bloqueo de fondo
+                    Toast.fire({
+                        title: '¿Desea actualizar el evento?'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Alerta de confirmacion
+                            const Toast = Swal.mixin({
+                                toast: true,
+                                position: "top-end",
+                                showConfirmButton: false,
+                                timer: 3000,
+                                // timerProgressBar: true,
+                                didOpen: (toast) => {
+                                    toast.onmouseenter = Swal.stopTimer;
+                                    toast.onmouseleave = Swal.resumeTimer;
+                                }
+                            });
+                            Toast.fire({
+                                icon: "success",
+                                title: "El evento ha sido actualizado con exito",
+                            });
+                        } else {
+                            // Con el metodo revert se puede revertir el movimiento que se ha hecho del calendario en un evento drop
+                            info.revert();
+                        }
+                    });
                 }
             });
 
