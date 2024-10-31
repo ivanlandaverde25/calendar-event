@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\EventoNuevo;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 use function Pest\Laravel\json;
 
@@ -70,6 +71,7 @@ class EventController extends Controller
         
         $eventos = EventoNuevo::all()->map(function($evento){
             return [
+                'id' => $evento->id,
                 'title' => $evento->nombre,
                 'start' => $evento->fecha_inicio,
                 'end' => $evento->fecha_fin,
@@ -99,5 +101,15 @@ class EventController extends Controller
         EventoNuevo::create($request->all());
 
         return response()->json(['success' => 'Elemento creado exitosamente']);
+    }
+
+    public function actualizarEvento(Request $request, $id){
+        $evento = Event::findOrFail($id);
+        dd($evento);
+        $evento->fecha_inicio = $request->input('fechaInicioEvento');
+        $evento->fecha_fin = $request->input('fechaFinEvento');
+        $evento->save();
+
+        return response()->json(['message' => 'Evento actualizado exitosamente']);
     }
 }

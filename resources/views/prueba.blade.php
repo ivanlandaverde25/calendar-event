@@ -233,7 +233,7 @@
                                 <i class="fa-solid fa-calendar-days margin-right"></i>
                                 <label>Fecha Inicio</label>
                             </div>
-                            <input type="date" id="fechaInicioEvento" placeholder="dd/mm/yyyy">
+                            <input type="date" id="fechaInicioEvento" name="fechaInicioEvento" placeholder="dd/mm/yyyy">
                         </div>
                         
                         {{-- fila 7 --}}
@@ -242,7 +242,7 @@
                                 <i class="fa-solid fa-calendar-days margin-right"></i>
                                 <label>Fecha Fin</label>
                             </div>
-                            <input type="date" id="fechaFinEvento" placeholder="dd/mm/yyyy">
+                            <input type="date" id="fechaFinEvento" name="fechaFinEvento" placeholder="dd/mm/yyyy">
                         </div>
                     </form>
                 </div>
@@ -313,6 +313,12 @@
                         fecha_inicio: eventInfo.startStr,
                         fecha_fin: eventInfo.endStr,
                     }
+
+                    btnCreateEvent.disabled = true;
+                    
+                    setTimeout(() => {
+                        btnCreateEvent.disabled = false;
+                    }, 3000);
                     
                     fetch('/registrar-evento', {
                         method: 'POST',
@@ -437,6 +443,10 @@
                     }
                 },
                 eventDrop: function(info){
+                    
+                    // alert(info.event.id);
+                    // alert(info.event.startStr);
+                    // alert(info.event.endStr);
 
                     const Toast = Swal.mixin({
                         position: 'bottom',
@@ -460,10 +470,30 @@
 
                     // Usar el mixin para mostrar el Toast con bloqueo de fondo
                     Toast.fire({
-                        title: '¿Desea actualizar el evento?'
+                        title: '¿Desea actualizar la fecha del evento?'
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Alerta de confirmacion
+
+                            let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                            fetch('/actualizar-evento/' + info.event.id, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'X-CSRF-TOKEN': csrfToken
+                                },
+                                body: JSON.stringify({
+                                    fecha_inicio: info.event.startStr,
+                                    fecha_fin: info.event.endStr
+                                })
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Error al actualizar el evento');
+                                }
+
+                                // Alerta de confirmacion
                             const Toast = Swal.mixin({
                                 toast: true,
                                 position: "top-end",
@@ -479,6 +509,31 @@
                                 icon: "success",
                                 title: "El evento ha sido actualizado con exito",
                             });
+                                return response.json();
+                            })
+                            .catch(error => {
+                                
+                                info.revert();
+
+                                // Alerta de confirmacion
+                                const ToastError = Swal.mixin({
+                                    toast: true,
+                                    position: "top-end",
+                                    showConfirmButton: false,
+                                    timer: 3000,
+                                    // timerProgressBar: true,
+                                    didOpen: (toast) => {
+                                        toast.onmouseenter = Swal.stopTimer;
+                                        toast.onmouseleave = Swal.resumeTimer;
+                                    }
+                                });
+                                ToastError.fire({
+                                    icon: "error",
+                                    title: "No se pudo actualizar el evento",
+                                });
+
+                                console.error(error);
+                            })
                         } else {
                             // Con el metodo revert se puede revertir el movimiento que se ha hecho del calendario en un evento drop
                             info.revert();
